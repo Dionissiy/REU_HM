@@ -61,5 +61,5 @@ inline bool Deque<T, Container>::empty() const
 template<class T, class Container>
 inline int Deque<T, Container>::size() const
 {
-	return container.empty();
+	return container.size();
 }
