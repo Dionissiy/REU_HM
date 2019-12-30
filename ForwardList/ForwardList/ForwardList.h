@@ -81,7 +81,7 @@ public:
 		return Iterator(pos.node->next);
 	}
 
-	Iterator erase_after(const Iterator pos, const T& value)
+	Iterator erase_after(const Iterator pos)
 	{
 		if (pos.node->next == nullptr)
 			return end();
