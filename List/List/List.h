@@ -8,7 +8,7 @@ class List
 		Node* prev;
 		Node* next;
 
-		Node(T value);
+		Node(const T& value);
 	};
 
 	Node* head;
@@ -19,8 +19,9 @@ public:
 	class Iterator
 	{
 		Node* node;
-	public:
+		friend class List;
 		Iterator(Node* node) : node(node) { }
+	public:
 		Iterator(const Iterator& other) : node(other.node) { }
 		bool operator==(const Iterator& other) const
 		{
@@ -76,15 +77,62 @@ public:
 	List();
 	int size() const;
 	bool empty() const;
-	void push_back(T value);
-	void push_front(T value);
+	void push_back(const T& value);
+	void push_front(const T& value);
 	bool pop_back();
 	bool pop_front();
 	void clear();
 	const T& front() const;
 	T& front();
-	const T back() const;
+	const T& back() const;
 	T& back();
+
+	Iterator insert(const Iterator pos, const T& value)
+	{
+		if (pos.node == nullptr)
+		{
+			push_back(value);
+			return Iterator(nullptr);
+		}
+
+		Node* temp = new Node(value);
+		temp->next = pos.node;
+		temp->prev = pos.node->prev;
+
+		if (pos.node->prev != nullptr)
+			pos.node->prev->next = temp;
+		else
+			head = temp;
+
+		pos.node->prev = temp;
+
+		++m_size;
+		return Iterator(temp);
+	}
+
+	Iterator erase(const Iterator pos)
+	{
+		if (pos.node == nullptr)
+			return end();
+
+		if (pos.node->prev != nullptr)
+			pos.node->prev->next = pos.node->next;
+		else
+			head = head->next;
+
+		if (pos.node->next != nullptr)
+			pos.node->next->prev = pos.node->prev;
+		else
+			tail = tail->prev;
+
+		Node* temp = pos.node->next;
+		pos.node->~Node();
+		delete pos.node;
+
+		--m_size;
+		return Iterator(temp);
+	}
+
 	Iterator begin() const
 	{
 		return Iterator(head);
@@ -93,12 +141,16 @@ public:
 	{
 		return Iterator(nullptr);
 	}
+	Iterator rbegin() const
+	{
+		return Iterator(tail);
+	}
 
 	~List();
 };
 
 template<typename T>
-inline List<T>::Node::Node(T value) : data(value), prev(nullptr), next(nullptr)
+inline List<T>::Node::Node(const T& value) : data(value), prev(nullptr), next(nullptr)
 {
 }
 
@@ -120,7 +172,7 @@ inline bool List<T>::empty() const
 }
 
 template<typename T>
-inline void List<T>::push_back(T value)
+inline void List<T>::push_back(const T& value)
 {
 	if (head == nullptr)
 	{
@@ -137,7 +189,7 @@ inline void List<T>::push_back(T value)
 }
 
 template<typename T>
-inline void List<T>::push_front(T value)
+inline void List<T>::push_front(const T& value)
 {
 	if (head == nullptr)
 	{
@@ -196,17 +248,7 @@ inline bool List<T>::pop_front()
 template<typename T>
 inline void List<T>::clear()
 {
-	if (head == nullptr)
-		return;
-
-	do
-	{
-		head = head->next;
-		delete head->prev;
-	} while (head != tail);
-
-	tail = head = nullptr;
-	m_size = 0;
+	while (pop_front());
 }
 
 template<typename T>
@@ -222,7 +264,7 @@ inline T& List<T>::front()
 }
 
 template<typename T>
-inline const T List<T>::back() const
+inline const T& List<T>::back() const
 {
 	return tail->data;
 }
